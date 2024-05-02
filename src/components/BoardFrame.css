@@ -1,0 +1,6 @@
+.board-frame {
+  height: 200px;
+  width: 600px;
+  display: flex;
+  position: relative;
+}

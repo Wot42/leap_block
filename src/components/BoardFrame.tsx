@@ -1,37 +1,59 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import BoardSpace from "./BoardSpace";
 import "./BoardFrame.css";
-import { BoardSpaceRule } from "../utils/boardSpaceRule";
-import { GamePieceRules } from "../utils/gamePieceRules";
 import GamePiece from "./GamePiece";
+import { BoardRule } from "../utils/boardRule";
 
-const BoardFrame = () => {
-  // bad set up for tests
-  const mainBoard = [
-    new BoardSpaceRule(),
-    new BoardSpaceRule(),
-    new BoardSpaceRule(),
-  ];
-  mainBoard[0].hiLightList.push(mainBoard[1]);
-  mainBoard[0].hiLightList.push(mainBoard[2]);
-  mainBoard[1].hiLightList.push(mainBoard[0]);
-  mainBoard[1].hiLightList.push(mainBoard[2]);
-  mainBoard[2].hiLightList.push(mainBoard[0]);
-  mainBoard[2].hiLightList.push(mainBoard[1]);
+interface props {
+  mainBoard: BoardRule;
+}
 
-  mainBoard[0].id = 0;
-  mainBoard[1].id = 1;
-  mainBoard[2].id = 2;
+const BoardFrame = ({ mainBoard }: props) => {
+  // real content
 
-  const piece = new GamePieceRules({ space: mainBoard[1] });
+  const defaultList: JSX.Element[] = [];
+  const [spacesComponents, setSpacesComponents] = useState(defaultList);
+  const [piecesComponents, setPiecesComponents] = useState(defaultList);
+
+  useEffect(() => {
+    if (mainBoard.real === false) {
+      // NOT FINISHED
+      // var newComponents = mainBoard.initialize();
+
+      const newSpacesComponents: JSX.Element[] = [];
+      let newComponent: JSX.Element = <React.Fragment />;
+      mainBoard.spaces.forEach((row) => {
+        row.forEach((space) => {
+          newComponent = <BoardSpace key={"s" + space.id} space={space} />;
+          newSpacesComponents.push(newComponent);
+        });
+      });
+      setSpacesComponents(newSpacesComponents);
+
+      const newPiecesComponents: JSX.Element[] = [];
+      mainBoard.pieces.forEach((piece) => {
+        newComponent = <GamePiece key={"p" + piece.id} piece={piece} />;
+        newPiecesComponents.push(newComponent);
+      });
+      setPiecesComponents(newPiecesComponents);
+
+      // have board set zoom which should set scale and trueSize
+      mainBoard.real = true;
+    }
+    console.log("efect trigered");
+  }, [mainBoard]);
 
   return (
     <React.Fragment>
-      <div className="board-frame color__board">
-        <BoardSpace key="s1" space={mainBoard[0]} />
-        <BoardSpace key="s2" space={mainBoard[1]} />
-        <BoardSpace key="s3" space={mainBoard[2]} />
-        <GamePiece key="p1" piece={piece} />
+      <div
+        className="board-frame color__board"
+        style={{
+          height: `${mainBoard.frameSize[1]}px`,
+          width: `${mainBoard.frameSize[0]}px`,
+        }}
+      >
+        {spacesComponents}
+        {piecesComponents}
       </div>
     </React.Fragment>
   );

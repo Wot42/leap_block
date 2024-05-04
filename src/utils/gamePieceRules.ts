@@ -17,6 +17,7 @@ export class GamePieceRules {
   spaceSize: [number, number] = [0, 0]; //                                 SET UP
   boardScale: number = 1; //                                           NOT SET UP (might stay one, not updated)
   trueSize: [number, number] = [0, 0]; //                                   SET UP (updates with scale)
+  possibleMoves: BoardSpaceRule[] = [];
 
   constructor(props: GamePieceRulesProps) {
     this.space = props.space;
@@ -33,6 +34,12 @@ export class GamePieceRules {
     this.trueSize = [this.spaceSize[0] * scale, this.spaceSize[1] * scale];
   } //currently UNUSED
 
+  hiLight(setting: boolean) {
+    this.possibleMoves.forEach((space) => {
+      if (space.setHiLight) space.setHiLight(setting);
+    });
+  }
+
   draggedTo(offsetX: number, offsetY: number) {
     const trueSize = this.trueSize;
 
@@ -42,21 +49,13 @@ export class GamePieceRules {
     const globalX = offsetX + this.currentX * trueSize[0];
     const globalY = offsetY + this.currentY * trueSize[1];
 
-    if (
-      row >= 0 &&
-      row < this.boardSize &&
-      column >= 0 &&
-      column < this.boardSize
-    ) {
-      // CHECK AVAILABLE HERE
-      const newSpace = this.spaces[row][column];
-      console.log(newSpace.piece);
-      if (newSpace.piece === undefined) {
+    this.possibleMoves.forEach((space) => {
+      if (row === space.row && column === space.column) {
         this.space.removePiece();
-        this.space = newSpace;
-        this.space.addPiece(this);
+        this.space = space;
+        space.addPiece(this);
       }
-    }
+    });
 
     let pos: PiecePositionData = {
       top: this.currentY * trueSize[1],

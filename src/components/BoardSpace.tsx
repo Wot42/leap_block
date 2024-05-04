@@ -23,7 +23,19 @@ const BoardSpace = ({ space }: props) => {
     );
   }
 
-  return <div className="board-space">{hiLightDisplay}</div>;
+  return (
+    <div
+      className="board-space"
+      style={{
+        width: `${space.spaceSize[0]}px`,
+        height: `${space.spaceSize[1]}px`,
+        left: `${space.spaceSize[0] * space.column}px`,
+        top: `${space.spaceSize[1] * space.row}px`,
+      }}
+    >
+      {hiLightDisplay}
+    </div>
+  );
 };
 
 export default BoardSpace;

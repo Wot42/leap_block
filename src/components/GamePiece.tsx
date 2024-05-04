@@ -23,6 +23,7 @@ const GamePiece = ({ piece }: props) => {
   const newPosition = (pos: PiecePositionData) => {
     setPosition(pos);
   };
+  console.log("drew piece" + piece.id);
 
   return (
     <div
@@ -41,19 +42,23 @@ const GamePiece = ({ piece }: props) => {
         whileDrag={{ scale: 0.8 }}
         dragSnapToOrigin
         onDragStart={() => {
-          piece.space.HiLightStart(); // TODO
+          //   //split board check
+          piece.space.findMoves();
+          piece.hiLight(true);
         }}
         onDragEnd={() => {
-          piece.space.HiLightEnd(); // TODO
+          console.log("end");
+          piece.hiLight(false);
           newPosition(piece.draggedTo(dragX.get(), dragY.get()));
+          console.log("endEND");
         }}
         style={{
           x: dragX,
           y: dragY,
         }}
       >
-        {piece.space.row}
-        {piece.space.column}
+        {/* {piece.space.row}
+        {piece.space.column} */}
       </motion.div>
     </div>
   );

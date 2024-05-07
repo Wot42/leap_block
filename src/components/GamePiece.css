@@ -3,6 +3,11 @@
   width: 90%;
   border-radius: 20%;
 }
+.game-piece__blocked{
+  padding: 10cqh 0;
+  font-size: 60cqh;
+  text-align: center;
+}
 .game-piece__container{
   height: 200px;
   width: 200px;
@@ -10,4 +15,5 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  container-type: size;
 }

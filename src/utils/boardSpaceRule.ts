@@ -6,17 +6,17 @@ interface BoardSpaceRuleProps {
 }
 
 export class BoardSpaceRule {
-  piece: GamePieceRules | undefined = undefined;
-  setHiLight: React.Dispatch<React.SetStateAction<boolean>> | undefined =
-    undefined;
-  hiLightList: BoardSpaceRule[] = []; //                                     NOT SET UP
   id: string;
   row: number;
   column: number;
-  spaceSize: [number, number] = [0, 0];
-  boardScale: number = 1;
-  trueSize: [number, number] = [0, 0];
-  neighbors: Array<Array<BoardSpaceRule>> = []; //8 directions // no hilights needed
+  piece: GamePieceRules | undefined = undefined; //piece on this space
+  setHiLight: React.Dispatch<React.SetStateAction<boolean>> | undefined =
+    undefined; //space components hi-light toggle
+  spaceSize: [number, number] = [0, 0]; //size of space at full room out
+  boardScale: number = 1; //zoom
+  trueSize: [number, number] = [0, 0]; //current display size with zoom
+  neighbors: Array<Array<BoardSpaceRule>> = []; //8 directions, each direction list spaces in order moving away from piece
+  adjacentSpaces: BoardSpaceRule[] = []; // all spaces next to this one
 
   constructor(props: BoardSpaceRuleProps) {
     this.row = props.row;
@@ -25,6 +25,7 @@ export class BoardSpaceRule {
   }
 
   initialize(otherSpaces: Array<Array<BoardSpaceRule>>): void {
+    //set neighbours
     const neighbors = this.neighbors;
     const boardSize = otherSpaces.length;
     const row = this.row;
@@ -78,6 +79,11 @@ export class BoardSpaceRule {
         }
       }
     }
+
+    // set adjacentSpaces
+    neighbors.forEach((direction) => {
+      if (direction[0]) this.adjacentSpaces.push(direction[0]);
+    });
   } // if otherSpaces[] is needed get here
 
   // updateHiLight = (update: boolean) => {}; // placeholder
@@ -89,39 +95,35 @@ export class BoardSpaceRule {
     this.setHiLight = setHiLight;
     // this.updateHiLight = updateHiLight;
   }
+
   addPiece(piece: GamePieceRules) {
     this.piece = piece;
     piece.currentX = this.column;
     piece.currentY = this.row;
+    piece.adjacentPieces = [];
+    this.adjacentSpaces.forEach((space) => {
+      if (space.piece) piece.adjacentPieces.push(space.piece);
+    });
+    piece.adjacentPieces.forEach((adjacentPiece) => {
+      adjacentPiece.adjacentPieces.push(piece);
+    });
   }
+
   removePiece() {
+    const piece = this.piece;
+    if (piece) {
+      var index = 0;
+      piece.adjacentPieces.forEach((adjacentPiece) => {
+        index = adjacentPiece.adjacentPieces.findIndex(
+          (p) => p.id === piece.id
+        );
+        adjacentPiece.adjacentPieces.splice(index, 1);
+      });
+    }
     this.piece = undefined;
   }
 
-  // HiLightStart() {
-  //   console.log(this.neighbors);
-
-  //   this.neighbors.forEach((direction) => {
-  //     direction.forEach((space) => {
-  //       if (space.setHiLight) {
-  //         space.setHiLight(true);
-  //       }
-  //     });
-  //   });
-  // }
-
-  // HiLightEnd() {
-  //   this.neighbors.forEach((direction) => {
-  //     direction.forEach((space) => {
-  //       if (space.setHiLight) {
-  //         space.setHiLight(false);
-  //       }
-  //     });
-  //   });
-  // }
-
   findMoves() {
-    console.log("find moves ran");
     const neighbors = this.neighbors;
     const possibleMoves = this.piece ? this.piece.possibleMoves : [];
     possibleMoves.splice(0, possibleMoves.length); // clear array from last results
@@ -136,6 +138,5 @@ export class BoardSpaceRule {
         }
       }
     });
-    // either return possibleMoves or possibleMoves is directly to this.piece
-  } // NOT FINISHED
+  }
 }

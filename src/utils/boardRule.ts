@@ -112,11 +112,12 @@ export class BoardRule {
       this.pieces.push(
         new GamePieceRules({
           space: this.spaces[point[0]][point[1]],
-          spaces: this.spaces,
           id: index,
+          boardSize: this.boardSize,
         })
       );
     });
+    this.pieces.forEach((piece) => piece.initialize(this.pieces));
   }
 }
 

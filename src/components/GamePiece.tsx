@@ -19,11 +19,16 @@ const GamePiece = ({ piece }: props) => {
     relativeY: 0,
   };
   const [position, setPosition] = useState(initialPos);
+  const [blocked, setBlocked] = useState(piece.blocked);
+
+  piece.addPieceComponent(setBlocked);
 
   const newPosition = (pos: PiecePositionData) => {
     setPosition(pos);
   };
-  console.log("drew piece" + piece.id);
+  // if (piece.id === 0) console.log(piece.adjacentPieces);
+
+  // console.log("drawn" + piece.id);
 
   return (
     <div
@@ -47,10 +52,8 @@ const GamePiece = ({ piece }: props) => {
           piece.hiLight(true);
         }}
         onDragEnd={() => {
-          console.log("end");
           piece.hiLight(false);
           newPosition(piece.draggedTo(dragX.get(), dragY.get()));
-          console.log("endEND");
         }}
         style={{
           x: dragX,
@@ -59,6 +62,7 @@ const GamePiece = ({ piece }: props) => {
       >
         {/* {piece.space.row}
         {piece.space.column} */}
+        {blocked ? <div className="game-piece__blocked">X</div> : ""}
       </motion.div>
     </div>
   );

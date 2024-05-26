@@ -5,4 +5,7 @@ export interface PiecePositionData {
   left: number;
   relativeX: number;
   relativeY: number;
+  relativeScale: number;
+  blocked: boolean;
 }
+export type Coordinate = [number, number];

@@ -13,20 +13,18 @@ const GamePiece = ({ piece }: props) => {
   const dragY = useMotionValue(0);
 
   const initialPos: PiecePositionData = {
-    left: piece.currentX * piece.trueSize[0],
-    top: piece.currentY * piece.trueSize[1],
+    left: piece.space.column * piece.board.spaceSize[0],
+    top: piece.space.row * piece.board.spaceSize[1],
     relativeX: 0,
     relativeY: 0,
+    relativeScale: 1,
+    blocked: piece.blocked,
   };
   const [position, setPosition] = useState(initialPos);
-  const [blocked, setBlocked] = useState(piece.blocked);
+  // const [blocked, setBlocked] = useState(piece.blocked);
 
-  piece.addPieceComponent(setBlocked);
-
-  const newPosition = (pos: PiecePositionData) => {
-    setPosition(pos);
-  };
-  // if (piece.id === 0) console.log(piece.adjacentPieces);
+  // piece.addPieceComponent(setBlocked, setPosition);
+  piece.addPieceComponent(setPosition);
 
   // console.log("drawn" + piece.id);
 
@@ -34,8 +32,8 @@ const GamePiece = ({ piece }: props) => {
     <div
       className="game-piece__container"
       style={{
-        width: `${piece.spaceSize[0]}px`,
-        height: `${piece.spaceSize[1]}px`,
+        width: `${piece.board.spaceSize[0]}px`,
+        height: `${piece.board.spaceSize[1]}px`,
         left: `${position.left}px`,
         top: `${position.top}px`,
       }}
@@ -43,17 +41,23 @@ const GamePiece = ({ piece }: props) => {
       <motion.div
         className="game-piece color__piece"
         drag
-        animate={{ x: [position.relativeX, 0], y: [position.relativeY, 0] }}
+        animate={{
+          x: [position.relativeX, 0],
+          y: [position.relativeY, 0],
+          scale: [position.relativeScale, 1],
+          // x: [position.relativeX],
+          // y: [position.relativeY],
+          // scale: [position.relativeScale],
+        }}
         whileDrag={{ scale: 0.8 }}
         dragSnapToOrigin
         onDragStart={() => {
-          //   //split board check
           piece.space.findMoves();
           piece.hiLight(true);
         }}
         onDragEnd={() => {
           piece.hiLight(false);
-          newPosition(piece.draggedTo(dragX.get(), dragY.get()));
+          piece.draggedTo(dragX.get(), dragY.get());
         }}
         style={{
           x: dragX,
@@ -62,7 +66,11 @@ const GamePiece = ({ piece }: props) => {
       >
         {/* {piece.space.row}
         {piece.space.column} */}
-        {blocked ? <div className="game-piece__blocked">X</div> : ""}
+        {position.blocked ? (
+          <div className="game-piece__blocked">X</div>
+        ) : (
+          piece.id
+        )}
       </motion.div>
     </div>
   );

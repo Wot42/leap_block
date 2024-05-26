@@ -1,8 +1,10 @@
+import { BoardRule } from "./boardRule";
 import { GamePieceRules } from "./gamePieceRules";
 
 interface BoardSpaceRuleProps {
   row: number;
   column: number;
+  board: BoardRule;
 }
 
 export class BoardSpaceRule {
@@ -10,22 +12,22 @@ export class BoardSpaceRule {
   row: number;
   column: number;
   piece: GamePieceRules | undefined = undefined; //piece on this space
-  setHiLight: React.Dispatch<React.SetStateAction<boolean>> | undefined =
+  setHiLight: React.Dispatch<React.SetStateAction<string>> | undefined =
     undefined; //space components hi-light toggle
-  spaceSize: [number, number] = [0, 0]; //size of space at full room out
-  boardScale: number = 1; //zoom
-  trueSize: [number, number] = [0, 0]; //current display size with zoom
   neighbors: Array<Array<BoardSpaceRule>> = []; //8 directions, each direction list spaces in order moving away from piece
   adjacentSpaces: BoardSpaceRule[] = []; // all spaces next to this one
+  board: BoardRule;
 
   constructor(props: BoardSpaceRuleProps) {
     this.row = props.row;
     this.column = props.column;
     this.id = "" + this.row + "," + this.column;
+    this.board = props.board;
   }
 
-  initialize(otherSpaces: Array<Array<BoardSpaceRule>>): void {
-    //set neighbours
+  initialize(): void {
+    //set neighbors
+    const otherSpaces = this.board.spaces;
     const neighbors = this.neighbors;
     const boardSize = otherSpaces.length;
     const row = this.row;
@@ -84,12 +86,12 @@ export class BoardSpaceRule {
     neighbors.forEach((direction) => {
       if (direction[0]) this.adjacentSpaces.push(direction[0]);
     });
-  } // if otherSpaces[] is needed get here
+  }
 
   // updateHiLight = (update: boolean) => {}; // placeholder
 
   addSpaceComponent(
-    setHiLight: React.Dispatch<React.SetStateAction<boolean>>
+    setHiLight: React.Dispatch<React.SetStateAction<string>>
     // updateHiLight: (update: boolean) => void // might not bee needed
   ) {
     this.setHiLight = setHiLight;
@@ -98,8 +100,6 @@ export class BoardSpaceRule {
 
   addPiece(piece: GamePieceRules) {
     this.piece = piece;
-    piece.currentX = this.column;
-    piece.currentY = this.row;
     piece.adjacentPieces = [];
     this.adjacentSpaces.forEach((space) => {
       if (space.piece) piece.adjacentPieces.push(space.piece);
@@ -112,7 +112,7 @@ export class BoardSpaceRule {
   removePiece() {
     const piece = this.piece;
     if (piece) {
-      var index = 0;
+      let index = 0;
       piece.adjacentPieces.forEach((adjacentPiece) => {
         index = adjacentPiece.adjacentPieces.findIndex(
           (p) => p.id === piece.id

@@ -7,7 +7,8 @@ import { BoardRule } from "./utils/boardRule";
 function App() {
   const mainBoard = new BoardRule({ pieceCount: 6 });
   const frameSize: [number, number] = [window.innerWidth, window.innerHeight];
-  mainBoard.setFrameSize(frameSize);
+
+  mainBoard.initializeFrameSize(frameSize);
 
   return (
     <div className="App">

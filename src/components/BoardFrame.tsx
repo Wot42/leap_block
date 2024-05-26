@@ -15,11 +15,10 @@ const BoardFrame = ({ mainBoard }: props) => {
   const [spacesComponents, setSpacesComponents] = useState(defaultList);
   const [piecesComponents, setPiecesComponents] = useState(defaultList);
 
+  console.log("frame rendered");
+
   useEffect(() => {
     if (mainBoard.real === false) {
-      // NOT FINISHED
-      // var newComponents = mainBoard.initialize();
-
       const newSpacesComponents: JSX.Element[] = [];
       let newComponent: JSX.Element = <React.Fragment />;
       mainBoard.spaces.forEach((row) => {
@@ -37,11 +36,10 @@ const BoardFrame = ({ mainBoard }: props) => {
       });
       setPiecesComponents(newPiecesComponents);
 
-      // have board set zoom which should set scale and trueSize
       mainBoard.real = true;
     }
-    console.log("efect trigered");
-  }, [mainBoard]);
+    console.log("effect triggered");
+  }, [mainBoard]); // HAVE I MISLABLED ROW?
 
   return (
     <React.Fragment>

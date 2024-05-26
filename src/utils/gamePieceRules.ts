@@ -1,90 +1,196 @@
-import { PiecePositionData } from "../typesAndInterfaces";
+import { Coordinate, PiecePositionData } from "../typesAndInterfaces";
+import { BoardRule } from "./boardRule";
 import { BoardSpaceRule } from "./boardSpaceRule";
 
 interface GamePieceRulesProps {
   space: BoardSpaceRule;
   id: number;
-  boardSize: number;
+  board: BoardRule;
 }
 
 export class GamePieceRules {
   id: number;
   space: BoardSpaceRule; //space this piece is on.
-  // spaces: Array<Array<BoardSpaceRule>>; //needed?
-  boardSize: number; //unused
   otherPieces: Array<GamePieceRules> = []; // used for triggering block check
-  currentX: number; // current column //might be better getting from space
-  currentY: number; // current row  //might be better getting from space
-  spaceSize: [number, number] = [0, 0]; //size of space at full room out
-  boardScale: number = 1; //zoom
-  trueSize: [number, number] = [0, 0]; //current display size with zoom
   possibleMoves: BoardSpaceRule[] = []; //list of legal moves
   adjacentPieces: GamePieceRules[] = []; //list of adjacent pieces
   blocked: boolean = false; // if true moving this piece would split the board
-  setBlocked: React.Dispatch<React.SetStateAction<boolean>> | undefined =
-    undefined; // updates components blocked toggle
+  board: BoardRule; // the board info
+
+  // currentX current column
+  // currentY current row
+
+  setPosition:
+    | React.Dispatch<React.SetStateAction<PiecePositionData>>
+    | undefined = undefined; // updates components position data
+
+  // setBlocked: React.Dispatch<React.SetStateAction<boolean>> | undefined =
+  //   undefined; // updates components blocked toggle
+
+  get currentIndex(): Coordinate {
+    return [this.space.column, this.space.row];
+  }
+
+  get currentPosition(): Coordinate {
+    return [
+      this.space.column * this.board.spaceSize[0],
+      this.space.row * this.board.spaceSize[1],
+    ];
+  }
 
   constructor(props: GamePieceRulesProps) {
     this.space = props.space;
-    this.boardSize = props.boardSize;
-    this.currentX = this.space.column;
-    this.currentY = this.space.row;
+    this.board = props.board;
     this.id = props.id;
     this.space.addPiece(this);
   }
 
-  initialize(allPieces: GamePieceRules[]) {
-    allPieces.forEach((piece) => {
+  initialize() {
+    this.board.pieces.forEach((piece) => {
       if (piece.id !== this.id) this.otherPieces.push(piece);
     });
   }
 
-  addPieceComponent(setBlocked: React.Dispatch<React.SetStateAction<boolean>>) {
-    this.setBlocked = setBlocked;
+  addPieceComponent(
+    // setBlocked: React.Dispatch<React.SetStateAction<boolean>>,
+    setPosition: React.Dispatch<React.SetStateAction<PiecePositionData>>
+  ) {
+    // this.setBlocked = setBlocked;
+    this.setPosition = setPosition;
   }
 
-  setScale(scale: number) {
-    this.boardScale = scale;
-    this.trueSize = [this.spaceSize[0] * scale, this.spaceSize[1] * scale];
-  } //currently UNUSED
+  updatePosition(relativePosition: Coordinate = [0, 0], relativeScale = 1) {
+    if (this.setPosition) {
+      let pos: PiecePositionData = {
+        left: this.currentPosition[0],
+        top: this.currentPosition[1],
+        relativeX: relativePosition[0],
+        relativeY: relativePosition[1],
+        relativeScale: relativeScale,
+        blocked: this.blocked,
+      };
+      this.setPosition(pos);
+    }
+  }
 
   hiLight(setting: boolean) {
-    this.possibleMoves.forEach((space) => {
-      if (space.setHiLight) space.setHiLight(setting);
-    });
+    if (setting) {
+      let lightColor = this.blocked ? "blocked" : "light";
+      this.possibleMoves.forEach((space) => {
+        if (space.setHiLight) space.setHiLight(lightColor);
+      });
+    } else {
+      this.possibleMoves.forEach((space) => {
+        if (space.setHiLight) space.setHiLight("");
+      });
+    }
   }
 
-  moveTo(space: BoardSpaceRule) {
+  moveTo(space: BoardSpaceRule, updateBlock = true) {
     this.space.removePiece();
     this.space = space;
     space.addPiece(this);
-    this.otherPieces.forEach((checkPiece) => checkPiece.checkForBlock());
+    if (updateBlock) {
+      //false when everything moves in a shift.
+      this.otherPieces.forEach((checkPiece) => checkPiece.checkForBlock());
+    }
+  }
+
+  positionFromShiftData(shiftData: [number, number, number, Coordinate]) {
+    const globalPosition = this.convertShiftToGlobalPosition(shiftData);
+    const relativePosition =
+      this.convertGlobalPositionToRelative(globalPosition);
+    this.updatePosition(relativePosition, shiftData[2]);
+  } // take coordinate and scale?
+
+  convertShiftToGlobalPosition([
+    shiftColumn,
+    shiftRow,
+    shiftZoomFactor,
+    zoomDisplacement,
+  ]: [number, number, number, Coordinate]): Coordinate {
+    const shiftIndex = [shiftColumn, shiftRow];
+
+    const pastIndex: Coordinate = [
+      this.currentIndex[0] - shiftIndex[0],
+      this.currentIndex[1] - shiftIndex[1],
+    ];
+
+    const pastPosition: Coordinate = [
+      pastIndex[0] * shiftZoomFactor * this.board.spaceSize[0] +
+        zoomDisplacement[0],
+      pastIndex[1] * shiftZoomFactor * this.board.spaceSize[1] +
+        zoomDisplacement[1],
+    ];
+
+    return pastPosition;
+  } //take coordinate and scale?
+
+  // convertGlobalPositionToRelative(globalPosition: Coordinate): Coordinate {
+  //   const conversionMaths = (a: number, b: number) => {
+  //     return a - b;
+  //   };
+  //   let relativePosition = this.coordinateMaths(
+  //     globalPosition,
+  //     this.currentPosition,
+  //     conversionMaths
+  //   );
+
+  //   return relativePosition;
+  // }
+
+  convertGlobalPositionToRelative(globalPosition: Coordinate): Coordinate {
+    const currentPosition = this.currentPosition;
+
+    const relativePosition: Coordinate = [
+      globalPosition[0] - currentPosition[0],
+      globalPosition[1] - currentPosition[1],
+    ];
+
+    return relativePosition;
   }
 
   draggedTo(offsetX: number, offsetY: number) {
-    const trueSize = this.trueSize;
+    const spaceSize = this.board.spaceSize;
+    // const currentPosition = this.currentPosition
 
-    const globalX = offsetX + this.currentX * trueSize[0];
-    const globalY = offsetY + this.currentY * trueSize[1];
+    const globalPosition: Coordinate = [
+      offsetX + this.currentPosition[0],
+      offsetY + this.currentPosition[1],
+    ];
+
     if (this.blocked === false) {
-      const column = this.currentX + Math.floor(offsetX / trueSize[0] + 0.5);
-      const row = this.currentY + Math.floor(offsetY / trueSize[1] + 0.5);
+      const column =
+        this.currentIndex[0] + Math.floor(offsetX / spaceSize[0] + 0.5);
+      const row =
+        this.currentIndex[1] + Math.floor(offsetY / spaceSize[1] + 0.5);
 
       this.possibleMoves.forEach((space) => {
         if (row === space.row && column === space.column) {
           this.moveTo(space);
+
+          let shiftData = this.board.pieceMovedOnBoard();
+          const zoomDisplacement: Coordinate = [
+            (spaceSize[0] - this.board.spaceSize[0]) / 2,
+            (spaceSize[1] - this.board.spaceSize[1]) / 2,
+          ];
+
+          this.otherPieces.forEach((piece) => {
+            piece.positionFromShiftData([...shiftData, zoomDisplacement]);
+          });
+
+          const droppedZoom = shiftData[2] * 0.8; // 0.8 comes from game piece whileDrag()
+
+          globalPosition[0] += zoomDisplacement[0];
+          globalPosition[1] += zoomDisplacement[1];
+
+          this.updatePosition(
+            this.convertGlobalPositionToRelative(globalPosition),
+            droppedZoom
+          );
         }
       });
     }
-
-    let pos: PiecePositionData = {
-      top: this.currentY * trueSize[1],
-      left: this.currentX * trueSize[0],
-      relativeX: globalX - this.currentX * trueSize[0],
-      relativeY: globalY - this.currentY * trueSize[1],
-    };
-
-    return pos;
   }
 
   checkForBlock() {
@@ -118,7 +224,26 @@ export class GamePieceRules {
 
     if (this.blocked !== blocked) {
       this.blocked = blocked;
-      if (this.setBlocked) this.setBlocked(blocked);
+      // if (this.setBlocked) this.setBlocked(blocked);
     }
   }
+
+  // A Tidy function i Found to be bad for the readability of my code
+  // would abrivate to coMaths probably
+  // coordinateMaths(
+  //   firstCoordinate: Coordinate,
+  //   secondCoordinate: Coordinate,
+  //   mathsFunction: (a: number, b: number) => number
+  // ): Coordinate {
+  //   let returnCoordinate: Coordinate = [0, 0];
+  //   returnCoordinate[0] = mathsFunction(
+  //     firstCoordinate[0],
+  //     secondCoordinate[0]
+  //   );
+  //   returnCoordinate[1] = mathsFunction(
+  //     firstCoordinate[1],
+  //     secondCoordinate[1]
+  //   );
+  //   return returnCoordinate;
+  // } // (a:number, b:number) => a*b)
 }

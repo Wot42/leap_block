@@ -12,20 +12,59 @@ export class BoardRule {
   #piecesSortedByRow: GamePieceRules[] = []; // same list but reordered
   spaces: BoardSpaceRule[][] = []; // list of spaces [column] [row]
   frameSize: Coordinate = [0, 0]; // number of pixels in a frame
-  boardSize: number; // number of spaces in a row or column  // currently only used as constructor //is derived in space initialize
+  menuSize: Coordinate = [0, 0]; // number of pixels in menu
+  //screenSize: Coordinate = [0, 0]; // total screen size
+  screenHorizontal: boolean = true; // screen orientation is horizontal
+  boardSize: number = 0; // number of spaces in a row or column  // currently only used as constructor //is derived in space initialize
   spaceSize: Coordinate = [0, 0]; // number of pixels for a piece to display
-  real: boolean = false; // toggle for component set up
-  pieceCount: PieceCount; // number of pieces, used for constructor
+  real: boolean = false; // toggle for component has set t up to show and needs to animate
+  pieceCount: PieceCount = 2; // number of pieces, used for constructor
   zoom: number = 0; // scale in rows/columns
+  startedGame: boolean = false; //stops you changing the difficulty mid game
+
+  #setSpacesComponents:
+    | React.Dispatch<React.SetStateAction<JSX.Element[]>>
+    | undefined = undefined;
+
+  #setPiecesComponents:
+    | React.Dispatch<React.SetStateAction<JSX.Element[]>>
+    | undefined = undefined;
+
+  drawFrameComponent = () => {}; //placeholder //private?
 
   constructor(props: BoardRuleProps) {
-    this.pieceCount = props.pieceCount;
+    this.#generateBoard(props.pieceCount);
+  }
+
+  addFrameComponent(
+    setSpacesComponents: React.Dispatch<React.SetStateAction<JSX.Element[]>>,
+    setPiecesComponents: React.Dispatch<React.SetStateAction<JSX.Element[]>>,
+    drawFrameComponent: () => void
+  ) {
+    this.#setSpacesComponents = setSpacesComponents;
+    this.#setPiecesComponents = setPiecesComponents;
+    this.drawFrameComponent = drawFrameComponent;
+  }
+
+  #generateBoard(newCount: PieceCount) {
+    this.pieceCount = newCount;
     this.boardSize = this.pieceCount + 2;
-    this.createSpaces();
+    this.createSpaces(); // needs check
     this.allSpaces((space: BoardSpaceRule) => {
-      space.initialize();
+      space.initialize(); // needs check
     }); //initialize spaces
-    this.createPieces();
+    this.createPieces(); //needs check
+    this.real = false;
+  } // private?
+
+  changePieceCount(newCount: PieceCount) {
+    if (newCount !== this.pieceCount) {
+      this.pieces = [];
+      this.spaces = [];
+      this.#generateBoard(newCount);
+      console.log(this.pieces);
+      this.drawFrameComponent();
+    }
   }
 
   noThisDot() {
@@ -41,7 +80,7 @@ export class BoardRule {
   #updateZoom(newZoom: number) {
     this.zoom = newZoom;
     this.spaceSize = [this.frameSize[0] / newZoom, this.frameSize[1] / newZoom];
-  } //TAKE ZOOM OUT OF REQUIREMENTS?
+  }
 
   allSpaces(spaceFunction: (space: BoardSpaceRule) => void) {
     this.spaces.forEach((row) => {
@@ -104,14 +143,17 @@ export class BoardRule {
     }
 
     return [shiftColumn, shiftRow];
-  } // reconfigure from  piece getters
+  }
 
-  checkZoom(): number {
+  checkZoom(reorder = false): [number, Coordinate] {
+    const oldSpaceSize = this.spaceSize;
+    let zoomDisplacement: Coordinate = [0, 0];
     let shiftZoom = 1;
     const oldZoom = this.zoom;
+    if (reorder) this.sortPieces();
+    // checkZoom() is mainly called after checkShift() has been called sort should have already been called
     const piecesSortedByColumn = this.#piecesSortedByColumn;
     const piecesSortedByRow = this.#piecesSortedByRow;
-    // checkZoom() should only be called after checkShift() has been called so both should be sorted correctly already
     const lasIndex = this.pieceCount - 1;
     let maxValue = piecesSortedByColumn[lasIndex].space.column;
 
@@ -123,27 +165,72 @@ export class BoardRule {
       // this.zoom = maxValue + 2;
       this.#updateZoom(maxValue + 2);
       shiftZoom = this.zoom / oldZoom;
+      zoomDisplacement = [
+        (oldSpaceSize[0] - this.spaceSize[0]) / 2,
+        (oldSpaceSize[1] - this.spaceSize[1]) / 2,
+      ];
     }
 
-    return shiftZoom;
-  } // make sure sortPieces() has been called recently // reconfigure from  piece getters
+    return [shiftZoom, zoomDisplacement];
+  } // reorder is true if sortPieces() hasn't been called recently // REFACTOR from piece getters?
 
-  pieceMovedOnBoard(): [number, number, number] {
+  pieceMovedOnBoard(): [number, number, number, Coordinate] {
     // could check only if oldColumn/Row===1 || newColumn/Row===0
     const [shiftColumn, shiftRow] = this.checkShift();
     // could check only if oldColumn/Row===zoom-2 || newColumn/Row===zoom-1
-    const shiftZoom = this.checkZoom();
-    return [shiftColumn, shiftRow, shiftZoom];
+    const [shiftZoom, zoomDisplacement] = this.checkZoom();
+    this.startedGame = true;
+    return [shiftColumn, shiftRow, shiftZoom, zoomDisplacement];
   }
 
-  initializeFrameSize(frame: Coordinate): void {
-    this.frameSize = frame;
-    this.sortPieces();
-    this.checkZoom();
+  updateSizes(window: Coordinate): void {
+    const frameToButtonRatio = 0.9;
+
+    if (window[0] > window[1]) {
+      this.screenHorizontal = true;
+      this.frameSize[0] = window[0] * frameToButtonRatio;
+      this.frameSize[1] = window[1];
+
+      //avoid stretch
+      if (this.frameSize[0] > this.frameSize[1] * 2) {
+        this.frameSize[0] = window[1] * 2;
+      }
+
+      this.menuSize[0] = window[0] - this.frameSize[0];
+      this.menuSize[1] = window[1];
+    } else {
+      this.screenHorizontal = false;
+      this.frameSize[0] = window[0];
+      this.frameSize[1] = window[1] * frameToButtonRatio;
+
+      //avoid stretch
+      if (this.frameSize[1] > this.frameSize[0] * 2) {
+        this.frameSize[1] = window[0] * 2;
+      }
+
+      this.menuSize[0] = window[0];
+      this.menuSize[1] = window[1] - this.frameSize[1];
+    }
+
+    // this.sortPieces();
+    if (this.real) {
+      this.#updateZoom(this.zoom);
+      this.pieces.forEach((piece) => {
+        piece.updatePosition();
+      });
+    }
   }
 
   sortPieces() {
-    this.#piecesSortedByColumn.sort((a, b) => a.space.column - b.space.column);
+    const sortColumnThenRow = (a: GamePieceRules, b: GamePieceRules) => {
+      if (a.space.column === b.space.column) {
+        return a.space.row - b.space.row;
+      }
+
+      return a.space.column - b.space.column;
+    };
+    // left first, then highest.
+    this.#piecesSortedByColumn.sort(sortColumnThenRow);
     this.#piecesSortedByRow.sort((a, b) => a.space.row - b.space.row);
   }
 
@@ -203,7 +290,7 @@ export class BoardRule {
     startPoints.forEach((point, index) => {
       this.pieces.push(
         new GamePieceRules({
-          space: this.spaces[point[0]][point[1]],
+          space: this.findSpace(point),
           id: index,
           board: this,
         })
@@ -213,6 +300,52 @@ export class BoardRule {
     this.#piecesSortedByColumn = [...this.pieces];
     this.#piecesSortedByRow = [...this.pieces];
   }
+
+  copyBoard(copyBoard: BoardRule, resizable: boolean = false) {
+    if (copyBoard === this) return; //for safety
+    if (resizable && copyBoard.pieceCount !== this.pieceCount) {
+      this.changePieceCount(copyBoard.pieceCount);
+    }
+
+    if (copyBoard.pieceCount !== this.pieceCount) return; //for safety
+    const pieces = this.pieces;
+
+    // loop1: get global positions and size and remove all pieces from spaces copyPrep / an if/else for real?
+    const storedGlobals: Coordinate[] = [];
+    if (this.real) {
+      pieces.forEach((piece) => {
+        storedGlobals.push(piece.copyPrep());
+      });
+    } else {
+      pieces.forEach((piece) => {
+        piece.space.piece = undefined;
+      });
+    }
+
+    // loop2: use piece copy
+    pieces.forEach((piece, index) => {
+      piece.copyPiece(copyBoard.pieces[index]);
+    });
+
+    if (this.real) {
+      const zoomData = this.checkZoom(true);
+      // loop3: draw?(is not in draw in 2 as needs zoom) / add displacement to stored global
+      let newGlobal: Coordinate = [0, 0];
+      pieces.forEach((piece, index) => {
+        newGlobal = storedGlobals[index];
+        newGlobal[0] += zoomData[1][0];
+        newGlobal[1] += zoomData[1][1];
+        piece.updatePosition(
+          piece.convertGlobalPositionToRelative(newGlobal),
+          zoomData[0]
+        );
+      });
+    }
+  }
+
+  findSpace(spaceIndex: number[]): BoardSpaceRule {
+    return this.spaces[spaceIndex[0]][spaceIndex[1]];
+  } // can take number[] and convert to coordinate after. // DITCH coordinate?
 }
 
 // define=self.define

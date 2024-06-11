@@ -98,27 +98,31 @@ export class BoardSpaceRule {
     // this.updateHiLight = updateHiLight;
   }
 
-  addPiece(piece: GamePieceRules) {
+  addPiece(piece: GamePieceRules, addAdjacentPieces: boolean = true) {
     this.piece = piece;
-    piece.adjacentPieces = [];
-    this.adjacentSpaces.forEach((space) => {
-      if (space.piece) piece.adjacentPieces.push(space.piece);
-    });
-    piece.adjacentPieces.forEach((adjacentPiece) => {
-      adjacentPiece.adjacentPieces.push(piece);
-    });
+    if (addAdjacentPieces) {
+      piece.adjacentPieces = [];
+      this.adjacentSpaces.forEach((space) => {
+        if (space.piece) piece.adjacentPieces.push(space.piece);
+      });
+      piece.adjacentPieces.forEach((adjacentPiece) => {
+        adjacentPiece.adjacentPieces.push(piece);
+      });
+    }
   }
 
-  removePiece() {
-    const piece = this.piece;
-    if (piece) {
-      let index = 0;
-      piece.adjacentPieces.forEach((adjacentPiece) => {
-        index = adjacentPiece.adjacentPieces.findIndex(
-          (p) => p.id === piece.id
-        );
-        adjacentPiece.adjacentPieces.splice(index, 1);
-      });
+  removePiece(removeAdjacentPiece: boolean = true) {
+    if (removeAdjacentPiece) {
+      const piece = this.piece;
+      if (piece) {
+        let index = 0;
+        piece.adjacentPieces.forEach((adjacentPiece) => {
+          index = adjacentPiece.adjacentPieces.findIndex(
+            (p) => p.id === piece.id
+          );
+          adjacentPiece.adjacentPieces.splice(index, 1);
+        });
+      }
     }
     this.piece = undefined;
   }

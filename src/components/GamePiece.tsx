@@ -27,6 +27,7 @@ const GamePiece = ({ piece }: props) => {
   piece.addPieceComponent(setPosition);
 
   // console.log("drawn" + piece.id);
+  // if (piece.id === 4) console.log(piece);
 
   return (
     <div

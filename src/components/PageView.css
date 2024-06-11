@@ -1,0 +1,19 @@
+.page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* same as ap currently */
+
+.page-view__horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-view__vertical{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}

@@ -56,7 +56,10 @@ export class GamePieceRules {
     setPosition: React.Dispatch<React.SetStateAction<PiecePositionData>>
   ) {
     // this.setBlocked = setBlocked;
+    let updateNeeded = false;
+    if (this.setPosition === undefined) updateNeeded = true;
     this.setPosition = setPosition;
+    if (updateNeeded) this.updatePosition();
   }
 
   updatePosition(relativePosition: Coordinate = [0, 0], relativeScale = 1) {
@@ -86,11 +89,11 @@ export class GamePieceRules {
     }
   }
 
-  moveTo(space: BoardSpaceRule, updateBlock = true) {
-    this.space.removePiece();
+  moveTo(space: BoardSpaceRule, updateRelativeData = true) {
+    this.space.removePiece(updateRelativeData);
     this.space = space;
-    space.addPiece(this);
-    if (updateBlock) {
+    space.addPiece(this, updateRelativeData);
+    if (updateRelativeData) {
       //false when everything moves in a shift.
       this.otherPieces.forEach((checkPiece) => checkPiece.checkForBlock());
     }
@@ -151,15 +154,15 @@ export class GamePieceRules {
   }
 
   draggedTo(offsetX: number, offsetY: number) {
-    const spaceSize = this.board.spaceSize;
-    // const currentPosition = this.currentPosition
-
-    const globalPosition: Coordinate = [
-      offsetX + this.currentPosition[0],
-      offsetY + this.currentPosition[1],
-    ];
-
     if (this.blocked === false) {
+      const spaceSize = this.board.spaceSize;
+      // const currentPosition = this.currentPosition
+
+      const globalPosition: Coordinate = [
+        offsetX + this.currentPosition[0],
+        offsetY + this.currentPosition[1],
+      ];
+
       const column =
         this.currentIndex[0] + Math.floor(offsetX / spaceSize[0] + 0.5);
       const row =
@@ -170,13 +173,10 @@ export class GamePieceRules {
           this.moveTo(space);
 
           let shiftData = this.board.pieceMovedOnBoard();
-          const zoomDisplacement: Coordinate = [
-            (spaceSize[0] - this.board.spaceSize[0]) / 2,
-            (spaceSize[1] - this.board.spaceSize[1]) / 2,
-          ];
+          const zoomDisplacement = shiftData[3];
 
           this.otherPieces.forEach((piece) => {
-            piece.positionFromShiftData([...shiftData, zoomDisplacement]);
+            piece.positionFromShiftData(shiftData);
           });
 
           const droppedZoom = shiftData[2] * 0.8; // 0.8 comes from game piece whileDrag()
@@ -191,7 +191,7 @@ export class GamePieceRules {
         }
       });
     }
-  }
+  } //language check offset to relative?
 
   checkForBlock() {
     var blocked = false;
@@ -226,6 +226,36 @@ export class GamePieceRules {
       this.blocked = blocked;
       // if (this.setBlocked) this.setBlocked(blocked);
     }
+  }
+
+  copyPiece(copyPiece: GamePieceRules) {
+    // space: needs to be moved normally?
+    // possibleMoves:  lookup
+    // adjacentPieces:  lookup
+    // blocked: lookup
+    const newSpace = this.board.findSpace(copyPiece.currentIndex);
+    this.moveTo(newSpace, false);
+
+    let newSpaceArray: BoardSpaceRule[] = [];
+    copyPiece.possibleMoves.forEach((copySpace) => {
+      newSpaceArray.push(this.board.spaces[copySpace.column][copySpace.row]);
+    });
+    this.possibleMoves = newSpaceArray;
+
+    let newPieceArray: GamePieceRules[] = [];
+    copyPiece.adjacentPieces.forEach((copyPiece) => {
+      newPieceArray.push(this.board.pieces[copyPiece.id]);
+    });
+    this.adjacentPieces = newPieceArray;
+
+    this.blocked = copyPiece.blocked;
+  }
+
+  copyPrep(): Coordinate {
+    // find and retun globals
+    // remove piece from space. space.removePiece if refactored
+    this.space.removePiece(false);
+    return this.currentPosition;
   }
 
   // A Tidy function i Found to be bad for the readability of my code

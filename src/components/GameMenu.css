@@ -1,0 +1,27 @@
+.game-menu__container-horizontal, .game-menu__container-vertical{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5%
+}
+
+.game-menu__container-horizontal {
+  flex-direction: column;
+}
+.game-menu__container-vertical{
+  flex-direction: row;
+}
+
+
+.game-menu__button-horizontal{
+  width: 90%;
+  border-radius: 20%;
+  padding: 20% 0;
+}
+
+.game-menu__button-vertical{
+  height: 90%;
+  border-radius: 20%;
+  padding: 0 5%;
+}

@@ -17,8 +17,9 @@ const BoardFrame = ({ mainBoard }: props) => {
 
   console.log("frame rendered");
 
-  useEffect(() => {
+  const drawFrameComponent = () => {
     if (mainBoard.real === false) {
+      mainBoard.checkZoom();
       const newSpacesComponents: JSX.Element[] = [];
       let newComponent: JSX.Element = <React.Fragment />;
       mainBoard.spaces.forEach((row) => {
@@ -31,15 +32,34 @@ const BoardFrame = ({ mainBoard }: props) => {
 
       const newPiecesComponents: JSX.Element[] = [];
       mainBoard.pieces.forEach((piece) => {
-        newComponent = <GamePiece key={"p" + piece.id} piece={piece} />;
+        newComponent = (
+          <GamePiece
+            key={"p" + mainBoard.pieceCount + "," + piece.id}
+            piece={piece}
+          />
+        );
         newPiecesComponents.push(newComponent);
       });
       setPiecesComponents(newPiecesComponents);
 
       mainBoard.real = true;
+      // mainBoard.pieces.forEach((piece) => {
+      //   piece.updatePosition();
+      // });
     }
-    console.log("effect triggered");
-  }, [mainBoard]); // HAVE I MISLABLED ROW?
+    console.log("draw triggered");
+  };
+
+  mainBoard.addFrameComponent(
+    setSpacesComponents,
+    setPiecesComponents,
+    drawFrameComponent
+  );
+
+  useEffect(() => {
+    // drawFrameComponent();
+    mainBoard.drawFrameComponent();
+  }, [mainBoard]);
 
   return (
     <React.Fragment>

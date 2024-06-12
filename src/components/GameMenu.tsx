@@ -11,7 +11,7 @@ interface props {
 const GameMenu = ({ mainBoard, storedBoard }: props) => {
   const menuSize = mainBoard.menuSize;
   // states needed / boardSize / gameStarted / colours /
-  const [gameStarted, setGameStarted] = useState(mainBoard.startedGame);
+  // const [gameStarted, setGameStarted] = useState(mainBoard.startedGame);
   const [difficultyVisible, setDifficultyVisible] = useState(false);
   // VISIBILITY THOUGHTS FOR POLISH
   // to keep instant start mainBoard needs to either change or trigger function here
@@ -45,7 +45,7 @@ const GameMenu = ({ mainBoard, storedBoard }: props) => {
   };
   const clickStart = () => {
     mainBoard.startedGame = true;
-    setGameStarted(true);
+    // setGameStarted(true);
     storedBoard.copyBoard(mainBoard, true); // reset wrong otherwise?
     setDifficultyVisible(false);
   };

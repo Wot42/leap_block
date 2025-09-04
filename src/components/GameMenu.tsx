@@ -2,131 +2,115 @@ import React, { useState } from "react";
 import "./GameMenu.css";
 import { BoardRule } from "../utils/boardRule";
 import { PieceCount } from "../typesAndInterfaces";
+import { DrawMap } from "./DrawMap";
 
 interface props {
   mainBoard: BoardRule;
-  storedBoard: BoardRule;
 }
 
-const GameMenu = ({ mainBoard, storedBoard }: props) => {
+export const GameMenu = ({ mainBoard }: props) => {
   const menuSize = mainBoard.menuSize;
-  // states needed / boardSize / gameStarted / colours /
-  // const [gameStarted, setGameStarted] = useState(mainBoard.startedGame);
   const [difficultyVisible, setDifficultyVisible] = useState(false);
-  // VISIBILITY THOUGHTS FOR POLISH
-  // to keep instant start mainBoard needs to either change or trigger function here
-  // trigger function would allow an animation if needed.
-  // menu order needs work once i know the start flow.
-  // not sure when puzzles are generated and if a difficulty needs to be selected first.
+  const [stepsTaken, setStepsTaken] = useState(0);
+  mainBoard.setStepsTakenComponent = setStepsTaken;
 
-  //add buttons for setup/ difficulty presets, random setup, moves per round/
-  //add buttons for game play/ show ids/ other hints hints
+  if (stepsTaken < 0) {
+    mainBoard.stepsCurrent = 0;
+  }
 
-  const clickSave = () => {
-    storedBoard.copyBoard(mainBoard);
-  };
-  const clickReset = () => {
-    mainBoard.copyBoard(storedBoard);
-  };
+  const clickReset = () => mainBoard.reset();
+
   const clickDifficulty = () => {
     if (mainBoard.startedGame === false) {
       setDifficultyVisible(true);
-      // ADD PAUSE
     }
   };
-  const clickPieces = () => {
-    mainBoard.changePieceCount(nextPieceCount);
-    storedBoard.changePieceCount(nextPieceCount);
 
+  const clickPieces = () => {
+    mainBoard.changePieceCount(updateNextPieceCount());
     updateNextPieceCount();
   };
-  const clickColors = () => {
-    // set colours
-  };
+
   const clickStart = () => {
     mainBoard.startedGame = true;
-    // setGameStarted(true);
-    storedBoard.copyBoard(mainBoard, true); // reset wrong otherwise?
     setDifficultyVisible(false);
   };
 
-  const updateNextPieceCount = () => {
+  const updateNextPieceCount: () => PieceCount = () => {
     switch (mainBoard.pieceCount) {
-      case 2:
-        nextPieceCount = 4;
-        break;
       case 4:
-        nextPieceCount = 6;
-        break;
+        return 6;
       case 6:
-        nextPieceCount = 8;
-        break;
+        return 8;
       case 8:
-        nextPieceCount = 2;
-        break;
+        return 4;
     }
   };
 
-  let nextPieceCount: PieceCount = 2; // make a setState if i want it displayed
-  updateNextPieceCount();
-
-  let shownMenu = <React.Fragment></React.Fragment>;
+  let shownMenu = <React.Fragment />;
   let containerClasses = "game-menu__container-vertical";
-  let buttonClasses = "game-menu__button-vertical color__board";
+  let buttonClasses = "game-menu__button game-menu__button-vertical";
+  let stepsClass = "game-menu__steps-vertical";
   if (mainBoard.screenHorizontal) {
     containerClasses = "game-menu__container-horizontal";
-    buttonClasses = "game-menu__button-horizontal color__board";
+    buttonClasses = "game-menu__button game-menu__button-horizontal";
+    stepsClass = "game-menu__steps-horizontal";
   }
+  if (stepsTaken === mainBoard.stepsMax) {
+    stepsClass += " game-menu__steps-blocked";
+  }
+
+  const whichMainButton = () => {
+    if (mainBoard.startedGame) {
+      return (
+        <button className={buttonClasses} onClick={clickReset}>
+          Reset
+        </button>
+      );
+    } else {
+      return (
+        <button className={buttonClasses} onClick={clickDifficulty}>
+          Difficulty
+        </button>
+      );
+    }
+  };
 
   if (difficultyVisible) {
     shownMenu = (
-      <React.Fragment>
-        <div
-          className={containerClasses}
-          style={{
-            width: `${menuSize[0]}px`,
-            height: `${menuSize[1]}px`,
-          }}
-        >
-          Difficulty Menu
-          <button className={buttonClasses} onClick={clickStart}>
-            Start
-          </button>
-          <button className={buttonClasses} onClick={clickPieces}>
-            Pieces
-          </button>
-          <button className={buttonClasses} onClick={clickColors}>
-            Colours
-          </button>
-        </div>
-      </React.Fragment>
+      <div
+        className={containerClasses}
+        style={{
+          width: `${menuSize[0]}px`,
+          height: `${menuSize[1]}px`,
+        }}
+      >
+        <div className={stepsClass}>{"" + mainBoard.stepsMax}</div>
+        <button className={buttonClasses} onClick={clickPieces}>
+          Pieces
+        </button>
+        <button className={buttonClasses} onClick={clickStart}>
+          Start
+        </button>
+      </div>
     );
   } else {
     shownMenu = (
-      <React.Fragment>
-        <div
-          className={containerClasses}
-          style={{
-            width: `${menuSize[0]}px`,
-            height: `${menuSize[1]}px`,
-          }}
-        >
-          Game Menu
-          <button className={buttonClasses} onClick={clickSave}>
-            Save
-          </button>
-          <button className={buttonClasses} onClick={clickReset}>
-            Reset
-          </button>
-          <button className={buttonClasses} onClick={clickDifficulty}>
-            difficulty
-          </button>
+      <div
+        className={containerClasses}
+        style={{
+          width: `${menuSize[0]}px`,
+          height: `${menuSize[1]}px`,
+        }}
+      >
+        <div className={stepsClass}>
+          {"" + stepsTaken + "/" + mainBoard.stepsMax}
         </div>
-      </React.Fragment>
+        <DrawMap key="goalMap" map={mainBoard.goalMap} id="goalMap" />
+        {whichMainButton()}
+      </div>
     );
   }
 
-  return <React.Fragment>{shownMenu}</React.Fragment>;
+  return shownMenu;
 };
-
-export default GameMenu;

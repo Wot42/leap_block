@@ -3,9 +3,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5%
+  gap: 5%;
 }
-
+@media(max-aspect-ratio: 0.56){
+  .game-menu__container-horizontal, .game-menu__container-vertical{
+    gap: 1%;
+  }
+}
 .game-menu__container-horizontal {
   flex-direction: column;
 }
@@ -15,13 +19,41 @@
 
 
 .game-menu__button-horizontal{
-  width: 90%;
+  width: 80%;
   border-radius: 20%;
   padding: 20% 0;
+  font-size: 2vw;
 }
-
 .game-menu__button-vertical{
-  height: 90%;
+  height: 80%;
   border-radius: 20%;
   padding: 0 5%;
+  font-size: 4vw;
+}
+.game-menu__button{
+  background: var(--color__board);
+  border-radius: 20%;
+  border-style: solid;
+  border-color: var(--color__boarder-light) var(--color__boarder-shade) var(--color__boarder-shade) var(--color__boarder-light);
+}
+.game-menu__button:hover{
+  border-color: var(--color__boarder-light--muted) var(--color__boarder-shade--muted) var(--color__boarder-shade--muted) var(--color__boarder-light--muted);
+}
+.game-menu__button:active{
+  border-color: var(--color__boarder-shade) var(--color__boarder-light) var(--color__boarder-light) var(--color__boarder-shade);
+}
+
+
+.game-menu__steps-horizontal, .game-menu__steps-vertical{
+  padding: 10%;
+  border-radius: 20%;
+}
+.game-menu__steps-horizontal{
+  font-size: 4vw;
+}
+.game-menu__steps-vertical{
+  font-size: 8vw;
+}
+.game-menu__steps-blocked{
+  background: var(--color__block);
 }

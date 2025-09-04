@@ -1,0 +1,31 @@
+.draw-map__frame{
+  display: flex;
+  aspect-ratio: 1;
+  gap: 2px;
+}
+
+.game-menu__container-horizontal .draw-map__frame{
+  width: 96%;
+  margin: 2%;
+}
+
+.game-menu__container-vertical .draw-map__frame{
+  height: 96%;
+  margin: 2%;
+}
+
+.draw-map__column{
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.draw-map__space-full{
+  flex-grow: 1;
+  background: var(--color__piece);
+  border-radius: 15%;
+}
+.draw-map__space-empty{
+  flex-grow: 1;
+}

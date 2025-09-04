@@ -1,8 +1,15 @@
-body { background-color: rgb(2, 18, 1);}
-.color__board{background-color: rgb(0, 33, 15);}
-.color__hi-light{background-color: rgb(184, 208, 31);}
-.color__piece{background-color: rgb(39, 198, 3);}
-.color__hi-block{background-color: rgb(246, 94, 29)}
+* {
+  --color__background: rgb(2, 18, 1);
+  --color__board: rgb(0, 33, 15);
+  --color__piece: rgb(39, 198, 3);
+  --color__hi-light: rgb(184, 208, 31);
+  --color__block: rgb(246, 94, 29);
+  --color__boarder-light: rgb(0, 66, 30);
+  --color__boarder-shade: rgb(0, 12, 4);
+  --color__boarder-light--muted: rgb(0, 44, 22);
+  --color__boarder-shade--muted: rgb(0, 20, 7);
 
-/* place holder */
-* {color:yellow;}
+  color: yellow;
+}
+
+body {background: var(--color__background);}

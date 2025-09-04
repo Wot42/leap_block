@@ -8,7 +8,7 @@ interface props {
   piece: GamePieceRules;
 }
 
-const GamePiece = ({ piece }: props) => {
+export const GamePiece = ({ piece }: props) => {
   const dragX = useMotionValue(0);
   const dragY = useMotionValue(0);
 
@@ -21,13 +21,7 @@ const GamePiece = ({ piece }: props) => {
     blocked: piece.blocked,
   };
   const [position, setPosition] = useState(initialPos);
-  // const [blocked, setBlocked] = useState(piece.blocked);
-
-  // piece.addPieceComponent(setBlocked, setPosition);
   piece.addPieceComponent(setPosition);
-
-  // console.log("drawn" + piece.id);
-  // if (piece.id === 4) console.log(piece);
 
   return (
     <div
@@ -40,15 +34,12 @@ const GamePiece = ({ piece }: props) => {
       }}
     >
       <motion.div
-        className="game-piece color__piece"
+        className="game-piece"
         drag
         animate={{
           x: [position.relativeX, 0],
           y: [position.relativeY, 0],
           scale: [position.relativeScale, 1],
-          // x: [position.relativeX],
-          // y: [position.relativeY],
-          // scale: [position.relativeScale],
         }}
         whileDrag={{ scale: 0.8 }}
         dragSnapToOrigin
@@ -65,16 +56,12 @@ const GamePiece = ({ piece }: props) => {
           y: dragY,
         }}
       >
-        {/* {piece.space.row}
-        {piece.space.column} */}
         {position.blocked ? (
           <div className="game-piece__blocked">X</div>
         ) : (
-          piece.id
+          "" // piece.id
         )}
       </motion.div>
     </div>
   );
 };
-
-export default GamePiece;

@@ -1,4 +1,7 @@
-export type PieceCount = 2 | 4 | 6 | 8;
+import { BoardSpaceRule } from "./utils/boardSpaceRule";
+import { GamePieceRules } from "./utils/gamePieceRules";
+
+export type PieceCount = 4 | 6 | 8;
 
 export interface PiecePositionData {
   top: number;
@@ -8,12 +11,28 @@ export interface PiecePositionData {
   relativeScale: number;
   blocked: boolean;
 }
-export type Coordinate = [number, number];
+export interface MapPiece {
+  id: number;
+  index: Coordinate;
+  //color: string; // will probably need a PieceColor type
+}
+export interface MoveLog {
+  pieceId: number;
+  movedFrom: Coordinate;
+  movedTo: Coordinate;
+  shift: Coordinate;
+  zoomChange: number;
+}
+export interface PotentialMove {
+  piece: GamePieceRules;
+  space: BoardSpaceRule;
+}
+export type Coordinate = [number, number]; // [colum, row] [x,y] [left,top] [width, height]
 
 // Dictionary
-// Position noun: refers to the PiecePositionData
-// Position suffix: refers to an items location measured in pixels
+// position noun: refers to the PiecePositionData
+// position suffix: refers to an items location measured in pixels
 
-// Index suffix: refers to an items location measured in rows and columns
-// Global prefix: refers to a position relative to the boards origin
+// index suffix: refers to an items location measured in rows and columns
+// global prefix: refers to a position relative to the boards origin
 // relative prefix: refers to a position relative to its own drawn origin

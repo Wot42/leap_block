@@ -2,6 +2,7 @@
   height: 90%;
   width: 90%;
   border-radius: 20%;
+  background: var(--color__piece);
 }
 .game-piece__blocked{
   padding: 10cqh 0;

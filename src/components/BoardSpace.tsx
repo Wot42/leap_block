@@ -6,30 +6,17 @@ interface props {
   space: BoardSpaceRule;
 }
 
-const BoardSpace = ({ space }: props) => {
+export const BoardSpace = ({ space }: props) => {
   const [hiLight, setHiLight] = useState("");
-
-  // const updateHiLight = (update: boolean) => {
-  //   //unused
-  //   if (hiLight !== update) setHiLight(update);
-  // };
-
   space.addSpaceComponent(setHiLight);
-  let hiLightDisplay = <React.Fragment></React.Fragment>;
 
-  // if (hiLight) {
-  //   hiLightDisplay = (
-  //     <div className="board-space__hi-light color__hi-light"></div>
-  //   );
-  // }
+  let hiLightDisplay = <React.Fragment />;
   let hiLightClassNames = "";
   if (hiLight === "blocked") {
-    hiLightClassNames = "board-space__hi-light color__hi-block";
+    hiLightClassNames = "board-space__hi-light board-space__blocked";
   } else {
-    hiLightClassNames = "board-space__hi-light color__hi-light";
+    hiLightClassNames = "board-space__hi-light";
   }
-
-  // console.log(hiLightClassNames);
 
   if (hiLight) {
     hiLightDisplay = (
@@ -47,7 +34,5 @@ const BoardSpace = ({ space }: props) => {
     );
   }
 
-  return <React.Fragment>{hiLightDisplay}</React.Fragment>;
+  return hiLightDisplay;
 };
-
-export default BoardSpace;

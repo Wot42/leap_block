@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from "react";
 import "./PageView.css";
 import { BoardRule } from "../utils/boardRule";
-import BoardFrame from "./BoardFrame";
-import GameMenu from "./GameMenu";
+import { BoardFrame } from "./BoardFrame";
+import { GameMenu } from "./GameMenu";
 
 interface props {
   mainBoard: BoardRule;
-  storedBoard: BoardRule;
 }
 
-const PageView = ({ mainBoard, storedBoard }: props) => {
+export const PageView = ({ mainBoard }: props) => {
   const [windowSize, setWindowSize] = useState<[number, number]>([
     window.innerWidth,
     window.innerHeight,
   ]);
-
-  // ADD PAUSE STATE
 
   mainBoard.updateSizes(windowSize);
   let pageClass = "page-view__vertical";
@@ -32,14 +29,10 @@ const PageView = ({ mainBoard, storedBoard }: props) => {
     };
   }, []);
 
-  //page needs height and width to position properly?
-
   return (
     <div className={pageClass}>
       <BoardFrame key="frame" mainBoard={mainBoard} />
-      <GameMenu key="menu" mainBoard={mainBoard} storedBoard={storedBoard} />
+      <GameMenu key="menu" mainBoard={mainBoard} />
     </div>
   );
 };
-
-export default PageView;

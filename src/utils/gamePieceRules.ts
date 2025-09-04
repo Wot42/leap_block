@@ -19,13 +19,11 @@ export class GamePieceRules {
 
   // currentX current column
   // currentY current row
+  // I recommend checking the Dictionary on typesAndInterfaces.ts to understand my terminology
 
   setPosition:
     | React.Dispatch<React.SetStateAction<PiecePositionData>>
     | undefined = undefined; // updates components position data
-
-  // setBlocked: React.Dispatch<React.SetStateAction<boolean>> | undefined =
-  //   undefined; // updates components blocked toggle
 
   get currentIndex(): Coordinate {
     return [this.space.column, this.space.row];
@@ -52,10 +50,8 @@ export class GamePieceRules {
   }
 
   addPieceComponent(
-    // setBlocked: React.Dispatch<React.SetStateAction<boolean>>,
     setPosition: React.Dispatch<React.SetStateAction<PiecePositionData>>
   ) {
-    // this.setBlocked = setBlocked;
     let updateNeeded = false;
     if (this.setPosition === undefined) updateNeeded = true;
     this.setPosition = setPosition;
@@ -78,7 +74,10 @@ export class GamePieceRules {
 
   hiLight(setting: boolean) {
     if (setting) {
-      let lightColor = this.blocked ? "blocked" : "light";
+      let lightColor = "light";
+      if (this.blocked || this.board.stepsCurrent === this.board.stepsMax) {
+        lightColor = "blocked";
+      }
       this.possibleMoves.forEach((space) => {
         if (space.setHiLight) space.setHiLight(lightColor);
       });
@@ -104,7 +103,7 @@ export class GamePieceRules {
     const relativePosition =
       this.convertGlobalPositionToRelative(globalPosition);
     this.updatePosition(relativePosition, shiftData[2]);
-  } // take coordinate and scale?
+  }
 
   convertShiftToGlobalPosition([
     shiftColumn,
@@ -127,20 +126,7 @@ export class GamePieceRules {
     ];
 
     return pastPosition;
-  } //take coordinate and scale?
-
-  // convertGlobalPositionToRelative(globalPosition: Coordinate): Coordinate {
-  //   const conversionMaths = (a: number, b: number) => {
-  //     return a - b;
-  //   };
-  //   let relativePosition = this.coordinateMaths(
-  //     globalPosition,
-  //     this.currentPosition,
-  //     conversionMaths
-  //   );
-
-  //   return relativePosition;
-  // }
+  }
 
   convertGlobalPositionToRelative(globalPosition: Coordinate): Coordinate {
     const currentPosition = this.currentPosition;
@@ -154,9 +140,11 @@ export class GamePieceRules {
   }
 
   draggedTo(offsetX: number, offsetY: number) {
-    if (this.blocked === false) {
+    if (
+      this.blocked === false &&
+      this.board.stepsCurrent < this.board.stepsMax
+    ) {
       const spaceSize = this.board.spaceSize;
-      // const currentPosition = this.currentPosition
 
       const globalPosition: Coordinate = [
         offsetX + this.currentPosition[0],
@@ -188,10 +176,13 @@ export class GamePieceRules {
             this.convertGlobalPositionToRelative(globalPosition),
             droppedZoom
           );
+
+          this.board.stepsCurrent = 1;
+          this.board.checkSolved();
         }
       });
     }
-  } //language check offset to relative?
+  }
 
   checkForBlock() {
     var blocked = false;
@@ -224,16 +215,12 @@ export class GamePieceRules {
 
     if (this.blocked !== blocked) {
       this.blocked = blocked;
-      // if (this.setBlocked) this.setBlocked(blocked);
     }
   }
 
   copyPiece(copyPiece: GamePieceRules) {
-    // space: needs to be moved normally?
-    // possibleMoves:  lookup
-    // adjacentPieces:  lookup
-    // blocked: lookup
     const newSpace = this.board.findSpace(copyPiece.currentIndex);
+    this.space = newSpace;
     this.moveTo(newSpace, false);
 
     let newSpaceArray: BoardSpaceRule[] = [];
@@ -253,27 +240,8 @@ export class GamePieceRules {
 
   copyPrep(): Coordinate {
     // find and retun globals
-    // remove piece from space. space.removePiece if refactored
+    // remove piece from space
     this.space.removePiece(false);
     return this.currentPosition;
   }
-
-  // A Tidy function i Found to be bad for the readability of my code
-  // would abrivate to coMaths probably
-  // coordinateMaths(
-  //   firstCoordinate: Coordinate,
-  //   secondCoordinate: Coordinate,
-  //   mathsFunction: (a: number, b: number) => number
-  // ): Coordinate {
-  //   let returnCoordinate: Coordinate = [0, 0];
-  //   returnCoordinate[0] = mathsFunction(
-  //     firstCoordinate[0],
-  //     secondCoordinate[0]
-  //   );
-  //   returnCoordinate[1] = mathsFunction(
-  //     firstCoordinate[1],
-  //     secondCoordinate[1]
-  //   );
-  //   return returnCoordinate;
-  // } // (a:number, b:number) => a*b)
 }

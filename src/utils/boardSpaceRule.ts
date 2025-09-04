@@ -21,15 +21,15 @@ export class BoardSpaceRule {
   constructor(props: BoardSpaceRuleProps) {
     this.row = props.row;
     this.column = props.column;
-    this.id = "" + this.row + "," + this.column;
+    this.id = "" + this.column + "," + this.row;
     this.board = props.board;
   }
 
   initialize(): void {
     //set neighbors
-    const otherSpaces = this.board.spaces;
+    const allSpaces = this.board.spaces;
     const neighbors = this.neighbors;
-    const boardSize = otherSpaces.length;
+    const boardSize = allSpaces.length;
     const row = this.row;
     const column = this.column;
 
@@ -43,41 +43,41 @@ export class BoardSpaceRule {
     let west = true;
 
     for (let offset = 1; offset < boardSize; offset++) {
-      north = row - offset >= 0 ? true : false;
-      south = row + offset < boardSize ? true : false;
-      east = column + offset < boardSize ? true : false;
-      west = column - offset >= 0 ? true : false;
+      north = column - offset >= 0 ? true : false;
+      south = column + offset < boardSize ? true : false;
+      east = row + offset < boardSize ? true : false;
+      west = row - offset >= 0 ? true : false;
 
       if (north) {
         //n
-        neighbors[0].push(otherSpaces[row - offset][column]);
+        neighbors[0].push(allSpaces[column - offset][row]);
         if (east) {
           //ne
-          neighbors[1].push(otherSpaces[row - offset][column + offset]);
+          neighbors[1].push(allSpaces[column - offset][row + offset]);
         }
       }
       if (east) {
         //e
-        neighbors[2].push(otherSpaces[row][column + offset]);
+        neighbors[2].push(allSpaces[column][row + offset]);
         if (south) {
           //se
-          neighbors[3].push(otherSpaces[row + offset][column + offset]);
+          neighbors[3].push(allSpaces[column + offset][row + offset]);
         }
       }
       if (south) {
         //s
-        neighbors[4].push(otherSpaces[row + offset][column]);
+        neighbors[4].push(allSpaces[column + offset][row]);
         if (west) {
           //sw
-          neighbors[5].push(otherSpaces[row + offset][column - offset]);
+          neighbors[5].push(allSpaces[column + offset][row - offset]);
         }
       }
       if (west) {
         //w
-        neighbors[6].push(otherSpaces[row][column - offset]);
+        neighbors[6].push(allSpaces[column][row - offset]);
         if (north) {
           //nw
-          neighbors[7].push(otherSpaces[row - offset][column - offset]);
+          neighbors[7].push(allSpaces[column - offset][row - offset]);
         }
       }
     }
@@ -88,14 +88,8 @@ export class BoardSpaceRule {
     });
   }
 
-  // updateHiLight = (update: boolean) => {}; // placeholder
-
-  addSpaceComponent(
-    setHiLight: React.Dispatch<React.SetStateAction<string>>
-    // updateHiLight: (update: boolean) => void // might not bee needed
-  ) {
+  addSpaceComponent(setHiLight: React.Dispatch<React.SetStateAction<string>>) {
     this.setHiLight = setHiLight;
-    // this.updateHiLight = updateHiLight;
   }
 
   addPiece(piece: GamePieceRules, addAdjacentPieces: boolean = true) {

@@ -10,4 +10,8 @@
   height: 85%;
   width: 85%;
   border-radius: 10%;
+  background: var(--color__hi-light);
+}
+.board-space__blocked{
+  background: var(--color__block);
 }
